@@ -2,7 +2,7 @@
 
 This will search tweets, either based on some query search, or using trending topics, then iterate through these tweets and retrieve keywords from them using OpenAI API. Also it will generate a Word Cloud image with the keywords.
 
-## Runing
+## Running
 
 ```bash
 export OPENAI_API_KEY=""
@@ -20,7 +20,10 @@ TWITTER_TRENDS_LIMIT=10 python main.py
 python main.py --query "SEARCH_QUERY"
 ```
 
+## Running with Docker
+
 ```bash
+# to build locally, not needed, the image is already on Docker Hub
 docker image build --tag juliocesarmidia/open-ai-tweets-keywords:latest .
 
 export OPENAI_API_KEY=""
