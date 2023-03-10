@@ -7,6 +7,7 @@ RUN pip install -r \
     requirements.txt
 COPY ./ ./
 
+# in order to avoid downloading stopwords everytime
 RUN mkdir -p /root/nltk_data/corpora/
 COPY stopwords.zip /root/nltk_data/corpora/stopwords.zip
 VOLUME ["/root/nltk_data"]

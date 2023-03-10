@@ -11,9 +11,9 @@ export TWITTER_API_SECRET=""
 
 pip install -r requirements.txt
 
-# using trends topics (default 2 trends)
+# using trending topics (default 2 trends)
 python main.py
-# using 10 trends topics
+# using 10 trending topics
 TWITTER_TRENDS_LIMIT=10 python main.py
 
 # using specific query
@@ -30,7 +30,7 @@ export OPENAI_API_KEY=""
 export TWITTER_API_KEY=""
 export TWITTER_API_SECRET=""
 
-# using 10 trends topics
+# using 10 trending topics
 docker container run --rm \
   --name open-ai-tweets-keywords \
   --env TWITTER_API_KEY \
