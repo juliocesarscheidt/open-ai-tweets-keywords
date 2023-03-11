@@ -163,6 +163,7 @@ def process_search_query(
 if __name__ in "__main__":
     args = get_argument_parser()
 
+    # using specific query
     if args.query is not None:
         search_query = clean_text(args.query)
         print(f"Using search query {search_query}...")
@@ -176,6 +177,7 @@ if __name__ in "__main__":
         # save word cloud image
         save_word_cloud_image(keywords_frequencies, search_query)
 
+    # using trending topics
     else:
         print(f"Using {TWITTER_TRENDS_LIMIT} trending topics...")
         # retrieve trends
