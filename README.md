@@ -6,8 +6,7 @@ This will search tweets, either based on some query search, or using trending to
 
 ```bash
 export OPENAI_API_KEY=""
-export TWITTER_API_KEY=""
-export TWITTER_API_SECRET=""
+export TWITTER_BEARER_TOKEN=""
 
 pip install -r requirements.txt
 
@@ -27,14 +26,12 @@ python main.py --query "SEARCH_QUERY"
 docker image build --tag juliocesarmidia/open-ai-tweets-keywords:latest .
 
 export OPENAI_API_KEY=""
-export TWITTER_API_KEY=""
-export TWITTER_API_SECRET=""
+export TWITTER_BEARER_TOKEN=""
 
 # using 10 trending topics
 docker container run --rm \
   --name open-ai-tweets-keywords \
-  --env TWITTER_API_KEY \
-  --env TWITTER_API_SECRET \
+  --env TWITTER_BEARER_TOKEN \
   --env OPENAI_API_KEY \
   --env TWITTER_TRENDS_LIMIT=10 \
   --volume $PWD/:/usr/src/app/ \
@@ -43,8 +40,7 @@ docker container run --rm \
 # using specific query
 docker container run --rm \
   --name open-ai-tweets-keywords \
-  --env TWITTER_API_KEY \
-  --env TWITTER_API_SECRET \
+  --env TWITTER_BEARER_TOKEN \
   --env OPENAI_API_KEY \
   --volume $PWD/:/usr/src/app/ \
   juliocesarmidia/open-ai-tweets-keywords:latest --query "SEARCH_QUERY"
