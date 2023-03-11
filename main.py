@@ -4,7 +4,6 @@ import nltk
 import openai
 import argparse
 
-import unicodedata
 import matplotlib.pyplot as plt
 from requests import request
 from wordcloud import WordCloud
@@ -22,7 +21,6 @@ TWITTER_MAX_RESULTS = int(os.environ.get("TWITTER_MAX_RESULTS", "10"))
 TWITTER_TRENDS_LIMIT = int(os.environ.get("TWITTER_TRENDS_LIMIT", "1"))
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "text-davinci-003")
-openai.api_key = OPENAI_API_KEY  # set key on open ai lib
 
 
 def get_argument_parser():
@@ -36,10 +34,7 @@ def get_argument_parser():
 def clean_text(text: str):
     if text is None:
         return None
-    # Normalization Form C => canonical composite
-    text = unicodedata.normalize(
-        "NFC", text.strip().lower().encode("utf-8", "ignore").decode("utf-8")
-    )
+    text = text.strip().lower()
     # replace everything that is not included in the following chars
     text = re.sub(r"[^\w\s!#$%&\(\)\*\+,-—\./:;<=>\?@[\]^_´`\{\}|~]+", "", text)
     text = re.sub(r"\s+", " ", text)
@@ -75,16 +70,71 @@ def save_word_cloud_image(keywords_frequencies, search_query):
         stopwords=stopwords,
         min_font_size=10,
         max_words=50,
+        width=1024,
+        height=768,
         normalize_plurals=False,
-    ).generate_from_frequencies(keywords_frequencies)
-    plt.figure(figsize=(15, 15), facecolor=None)
-    plt.imshow(wordcloud, interpolation="bilinear")
-    plt.axis("off")
-    plt.imshow(wordcloud)
-    wordcloud.to_file(f"./keywords_{search_query.replace(' ', '_')}.png")
+    )
+    wordcloud.generate_from_frequencies(keywords_frequencies)
+    filename = f"./keywords_{search_query.replace(' ', '_')}.png"
+    print(f'Saving word cloud image on {filename}')
+    wordcloud.to_file(filename)
 
 
-def extract_keywords_from_text(text, openai_model):
+def retrieve_tweets_from_search(search_query, twitter_bearer_token, twitter_max_results, twitter_lang) -> list:
+    # retrieve tweets by query
+    query_string = f"lang={twitter_lang}&result_type=recent&count={twitter_max_results}"
+    tweets_response = make_request(
+        "https://api.twitter.com/1.1/search/tweets.json"
+        f"?q={search_query}&{query_string}",
+        "GET",
+        f"Bearer {twitter_bearer_token}",
+    )
+
+    tweets = []
+    for tweet in tweets_response["statuses"]:
+        # cleaning tweet text
+        text = tweet["text"].strip().lower()
+        # remove urls
+        text = re.sub(URL_REGEX, "", text)
+        text = clean_text(text)
+        # identifying mentions
+        mentions = (
+            tweet["entities"]["user_mentions"]
+            if "entities" in tweet and "user_mentions" in tweet["entities"]
+            else None
+        )
+        if mentions is not None:
+            text = re.sub(r"rt\s", "", text, flags=re.IGNORECASE)
+            text = re.sub(r"@[a-zA-Z0-9_]+:?\s?", "", text)
+        print("Tweet ::", text)
+        # add to tweets list
+        tweets.append(text)
+
+    return tweets
+
+
+def retrieve_trending_topics(twitter_bearer_token, twitter_trends_limit, twitter_woeid):
+    trending_topics_response = make_request(
+        f"https://api.twitter.com/1.1/trends/place.json?id={twitter_woeid}",
+        "GET",
+        f"Bearer {twitter_bearer_token}",
+    )
+    if trending_topics_response is None or len(trending_topics_response) <= 0:
+        pass
+    trending_topics = set()
+    for trend in trending_topics_response[0]["trends"]:
+        trend_name = clean_text(trend["name"])
+        trending_topics.add(trend_name)
+        if len(trending_topics) >= twitter_trends_limit:
+            break
+    trending_topics = sorted(trending_topics)
+    print(trending_topics)
+
+    return trending_topics
+
+
+def retrieve_keywords_from_text(text, openai_api_key, openai_model):
+    openai.api_key = openai_api_key  # set key on open ai lib
     responses = openai.Completion.create(
         model=openai_model,
         prompt=text,
@@ -109,45 +159,17 @@ def extract_keywords_from_text(text, openai_model):
     return keywords
 
 
-def process_search_query(
-    search_query, twitter_bearer_token, twitter_max_results, twitter_lang, openai_model
+def generate_keywords_frequencies_from_texts(
+    texts, openai_api_key, openai_model
 ):
-    # retrieve tweets by query
-    query_string = f"lang={twitter_lang}&result_type=recent&count={twitter_max_results}"
-    tweets_response = make_request(
-        "https://api.twitter.com/1.1/search/tweets.json"
-        f"?q={search_query}&{query_string}",
-        "GET",
-        f"Bearer {twitter_bearer_token}",
-    )
-
     keywords_list = []
-    for tweet in tweets_response["statuses"]:
-        # cleaning tweet text
-        text = tweet["text"].strip()
-        # remove urls
-        text = re.sub(URL_REGEX, "", text)
-        text = clean_text(text)
-
-        # identifying mentions
-        mentions = (
-            tweet["entities"]["user_mentions"]
-            if "entities" in tweet and "user_mentions" in tweet["entities"]
-            else None
-        )
-        if mentions is not None:
-            text = re.sub(r"rt\s", "", text, flags=re.IGNORECASE)
-            text = re.sub(r"@[a-zA-Z0-9_]+:?\s?", "", text)
-
-        print("Tweet ::", text)
-        keywords = extract_keywords_from_text(
-            f"Extract keywords from this text:\n{text}", openai_model
+    for text in texts:
+        keywords = retrieve_keywords_from_text(
+            f"Extract keywords from this text:\n{text}", openai_api_key, openai_model
         )
         print(keywords)
-
         # add to keywords list
         keywords_list.extend(keywords)
-        print()
 
     keywords_frequencies = dict()
     for keyword in keywords_list:
@@ -167,11 +189,15 @@ if __name__ in "__main__":
     if args.query is not None:
         search_query = clean_text(args.query)
         print(f"Using search query {search_query}...")
-        keywords_frequencies = process_search_query(
+        tweets = retrieve_tweets_from_search(
             search_query,
             TWITTER_BEARER_TOKEN,
             TWITTER_MAX_RESULTS,
             TWITTER_LANG,
+        )
+        keywords_frequencies = generate_keywords_frequencies_from_texts(
+            tweets,
+            OPENAI_API_KEY,
             OPENAI_MODEL,
         )
         # save word cloud image
@@ -180,29 +206,18 @@ if __name__ in "__main__":
     # using trending topics
     else:
         print(f"Using {TWITTER_TRENDS_LIMIT} trending topics...")
-        # retrieve trends
-        trending_topics_response = make_request(
-            f"https://api.twitter.com/1.1/trends/place.json?id={TWITTER_WOEID}",
-            "GET",
-            f"Bearer {TWITTER_BEARER_TOKEN}",
-        )
-        if trending_topics_response is None or len(trending_topics_response) <= 0:
-            pass
-        trending_topics = set()
-        for trend in trending_topics_response[0]["trends"]:
-            trend_name = clean_text(trend["name"])
-            trending_topics.add(trend_name)
-            if len(trending_topics) >= TWITTER_TRENDS_LIMIT:
-                break
-        trending_topics = sorted(trending_topics)
-        print(trending_topics)
-
+        # retrieve trending topics
+        trending_topics = retrieve_trending_topics(TWITTER_BEARER_TOKEN, TWITTER_TRENDS_LIMIT, TWITTER_WOEID)
         for trend in trending_topics:
-            keywords_frequencies = process_search_query(
+            tweets = retrieve_tweets_from_search(
                 trend,
                 TWITTER_BEARER_TOKEN,
                 TWITTER_MAX_RESULTS,
                 TWITTER_LANG,
+            )
+            keywords_frequencies = generate_keywords_frequencies_from_texts(
+                tweets,
+                OPENAI_API_KEY,
                 OPENAI_MODEL,
             )
             # save word cloud image
