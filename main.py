@@ -14,7 +14,6 @@ nltk.download("stopwords", quiet=True)
 
 URL_REGEX = r"((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*"
 TWITTER_BEARER_TOKEN = os.environ.get("TWITTER_BEARER_TOKEN")
-# https://gist.github.com/tedyblood/5bb5a9f78314cc1f478b3dd7cde790b9#file-woeid-L4919
 TWITTER_WOEID = int(
     os.environ.get("TWITTER_WOEID", "23424768")
 )  # Brazil woeid = 23424768
@@ -166,7 +165,7 @@ if __name__ in "__main__":
 
     if args.query is not None:
         search_query = clean_text(args.query)
-        print(f"Using search query {search_query}")
+        print(f"Using search query {search_query}...")
         keywords_frequencies = process_search_query(
             search_query,
             TWITTER_BEARER_TOKEN,
@@ -178,7 +177,7 @@ if __name__ in "__main__":
         save_word_cloud_image(keywords_frequencies, search_query)
 
     else:
-        print(f"Using {TWITTER_TRENDS_LIMIT} trending topics")
+        print(f"Using {TWITTER_TRENDS_LIMIT} trending topics...")
         # retrieve trends
         trending_topics_response = make_request(
             f"https://api.twitter.com/1.1/trends/place.json?id={TWITTER_WOEID}",

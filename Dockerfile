@@ -1,5 +1,10 @@
 FROM python:3.9-slim
 
+LABEL maintainer="Julio Cesar <julio@blackdevs.com.br>"
+LABEL org.opencontainers.image.source "https://github.com/juliocesarscheidt/open-ai-tweets-keywords"
+LABEL org.opencontainers.image.description "Script to get keywords from tweets using OpenAI and Twitter API"
+LABEL org.opencontainers.image.licenses "MIT"
+
 WORKDIR /usr/src/app
 
 COPY requirements.txt .
