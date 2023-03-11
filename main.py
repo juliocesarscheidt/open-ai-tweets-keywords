@@ -4,7 +4,6 @@ import nltk
 import openai
 import argparse
 
-import matplotlib.pyplot as plt
 from requests import request
 from wordcloud import WordCloud
 
@@ -18,7 +17,7 @@ TWITTER_WOEID = int(
 )  # Brazil woeid = 23424768
 TWITTER_LANG = os.environ.get("TWITTER_LANG", "pt")
 TWITTER_MAX_RESULTS = int(os.environ.get("TWITTER_MAX_RESULTS", "10"))
-TWITTER_TRENDS_LIMIT = int(os.environ.get("TWITTER_TRENDS_LIMIT", "1"))
+TWITTER_TRENDS_LIMIT = int(os.environ.get("TWITTER_TRENDS_LIMIT", "10"))
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "text-davinci-003")
 
