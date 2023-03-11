@@ -76,11 +76,13 @@ def save_word_cloud_image(keywords_frequencies, search_query):
     )
     wordcloud.generate_from_frequencies(keywords_frequencies)
     filename = f"./keywords_{search_query.replace(' ', '_')}.png"
-    print(f'Saving word cloud image on {filename}')
+    print(f"Saving word cloud image on {filename}")
     wordcloud.to_file(filename)
 
 
-def retrieve_tweets_from_search(search_query, twitter_bearer_token, twitter_max_results, twitter_lang) -> list:
+def retrieve_tweets_from_search(
+    search_query, twitter_bearer_token, twitter_max_results, twitter_lang
+) -> list:
     # retrieve tweets by query
     query_string = f"lang={twitter_lang}&result_type=recent&count={twitter_max_results}"
     tweets_response = make_request(
@@ -113,7 +115,9 @@ def retrieve_tweets_from_search(search_query, twitter_bearer_token, twitter_max_
     return tweets
 
 
-def retrieve_trending_topics(twitter_bearer_token, twitter_trends_limit, twitter_woeid):
+def retrieve_trending_topics(
+    twitter_bearer_token, twitter_trends_limit, twitter_woeid
+) -> list:
     trending_topics_response = make_request(
         f"https://api.twitter.com/1.1/trends/place.json?id={twitter_woeid}",
         "GET",
@@ -133,7 +137,7 @@ def retrieve_trending_topics(twitter_bearer_token, twitter_trends_limit, twitter
     return trending_topics
 
 
-def retrieve_keywords_from_text(text, openai_api_key, openai_model):
+def retrieve_keywords_from_text(text, openai_api_key, openai_model) -> list:
     openai.api_key = openai_api_key  # set key on open ai lib
     responses = openai.Completion.create(
         model=openai_model,
@@ -161,7 +165,7 @@ def retrieve_keywords_from_text(text, openai_api_key, openai_model):
 
 def generate_keywords_frequencies_from_texts(
     texts, openai_api_key, openai_model
-):
+) -> dict:
     keywords_list = []
     for text in texts:
         keywords = retrieve_keywords_from_text(
@@ -190,15 +194,10 @@ if __name__ in "__main__":
         search_query = clean_text(args.query)
         print(f"Using search query {search_query}...")
         tweets = retrieve_tweets_from_search(
-            search_query,
-            TWITTER_BEARER_TOKEN,
-            TWITTER_MAX_RESULTS,
-            TWITTER_LANG,
+            search_query, TWITTER_BEARER_TOKEN, TWITTER_MAX_RESULTS, TWITTER_LANG,
         )
         keywords_frequencies = generate_keywords_frequencies_from_texts(
-            tweets,
-            OPENAI_API_KEY,
-            OPENAI_MODEL,
+            tweets, OPENAI_API_KEY, OPENAI_MODEL,
         )
         # save word cloud image
         save_word_cloud_image(keywords_frequencies, search_query)
@@ -207,18 +206,15 @@ if __name__ in "__main__":
     else:
         print(f"Using {TWITTER_TRENDS_LIMIT} trending topics...")
         # retrieve trending topics
-        trending_topics = retrieve_trending_topics(TWITTER_BEARER_TOKEN, TWITTER_TRENDS_LIMIT, TWITTER_WOEID)
+        trending_topics = retrieve_trending_topics(
+            TWITTER_BEARER_TOKEN, TWITTER_TRENDS_LIMIT, TWITTER_WOEID
+        )
         for trend in trending_topics:
             tweets = retrieve_tweets_from_search(
-                trend,
-                TWITTER_BEARER_TOKEN,
-                TWITTER_MAX_RESULTS,
-                TWITTER_LANG,
+                trend, TWITTER_BEARER_TOKEN, TWITTER_MAX_RESULTS, TWITTER_LANG,
             )
             keywords_frequencies = generate_keywords_frequencies_from_texts(
-                tweets,
-                OPENAI_API_KEY,
-                OPENAI_MODEL,
+                tweets, OPENAI_API_KEY, OPENAI_MODEL,
             )
             # save word cloud image
             save_word_cloud_image(keywords_frequencies, trend)
