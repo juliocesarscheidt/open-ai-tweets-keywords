@@ -19,6 +19,11 @@ def chat_completion(text):
         messages=[
             {"role": "user", "content": f"Extract keywords from this text:\n{text}"}
         ],
+        temperature=0.1,  # from 0 to 1
+        max_tokens=60,  # up to 4000
+        top_p=1,  # from 0 to 1
+        frequency_penalty=0.8,  # from 0 to 2
+        presence_penalty=0,  # from 0 to 2
     )
     if "choices" not in response or len(response["choices"]) <= 0:
         return None

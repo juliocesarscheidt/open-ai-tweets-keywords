@@ -3,6 +3,8 @@ import re
 from request_utils import do_request
 from text_utils import sanitize_text, URL_REGEX
 
+TWITTER_URI = "https://api.twitter.com"
+
 
 def retrieve_tweets_from_search(
     search_query, twitter_bearer_token, twitter_max_results, twitter_lang
@@ -12,8 +14,7 @@ def retrieve_tweets_from_search(
         f"lang={twitter_lang}&result_type=recent" f"&count={twitter_max_results}"
     )
     tweets_response = do_request(
-        "https://api.twitter.com/1.1/search/tweets.json"
-        f"?q={search_query}&{query_string}",
+        f"{TWITTER_URI}/1.1/search/tweets.json" f"?q={search_query}&{query_string}",
         "GET",
         f"Bearer {twitter_bearer_token}",
     )
@@ -45,7 +46,7 @@ def retrieve_trending_topics(
     twitter_bearer_token, twitter_trends_limit, twitter_woeid
 ) -> list:
     trending_topics_response = do_request(
-        f"https://api.twitter.com/1.1/trends/place.json?id={twitter_woeid}",
+        f"{TWITTER_URI}/1.1/trends/place.json?id={twitter_woeid}",
         "GET",
         f"Bearer {twitter_bearer_token}",
     )
