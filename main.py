@@ -36,8 +36,9 @@ def clean_text(text: str):
     text = text.strip().lower()
     # replace everything that is not included in the following chars
     text = re.sub(r"[^\w\s!#$%&\(\)\*\+,-—\./:;<=>\?@[\]^_´`\{\}|~]+", "", text)
-    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"\t+", " ", text)
     text = re.sub(r"\n", " ", text)
+    text = re.sub(r"\s+", " ", text)
     return text
 
 
@@ -62,7 +63,7 @@ def make_request(
     return response.json()
 
 
-def save_word_cloud_image(keywords_frequencies, search_query):
+def save_word_cloud_image(keywords_frequencies: dict, filename: str) -> None:
     stopwords = nltk.corpus.stopwords.words("portuguese")
     wordcloud = WordCloud(
         background_color="black",
@@ -74,7 +75,6 @@ def save_word_cloud_image(keywords_frequencies, search_query):
         normalize_plurals=False,
     )
     wordcloud.generate_from_frequencies(keywords_frequencies)
-    filename = f"./keywords_{search_query.replace(' ', '_')}.png"
     print(f"Saving word cloud image on {filename}")
     wordcloud.to_file(filename)
 
@@ -142,9 +142,9 @@ def retrieve_keywords_from_text(text, openai_api_key, openai_model) -> list:
         model=openai_model,
         prompt=text,
         temperature=0.1,  # from 0 to 1
-        max_tokens=20,  # up to 4000
+        max_tokens=60,  # up to 4000
         top_p=1,  # from 0 to 1
-        frequency_penalty=1,  # from 0 to 2
+        frequency_penalty=0.8,  # from 0 to 2
         presence_penalty=0,  # from 0 to 2
     )
     if "choices" not in responses or len(responses["choices"]) <= 0:
@@ -152,8 +152,10 @@ def retrieve_keywords_from_text(text, openai_api_key, openai_model) -> list:
     text = responses["choices"][0]["text"]
     text = re.sub(r"^[0-9].\s?", "", text, flags=re.MULTILINE)
     text = re.sub(r"^[\-]\s?", "", text, flags=re.MULTILINE)
-    keywords = text.replace("\n", ",")
-    keywords = list(map(lambda x: clean_text(x), keywords.split(",")))
+    keywords = text.replace("\n", ",").split(",")
+    # remove urls
+    keywords = list(map(lambda x: re.sub(URL_REGEX, "", x), keywords))
+    keywords = list(map(lambda x: clean_text(x), keywords))
     keywords = list(
         map(lambda x: re.sub(r"keywords:?\s?", "", x, flags=re.IGNORECASE), keywords)
     )
@@ -166,6 +168,7 @@ def generate_keywords_frequencies_from_texts(
     texts, openai_api_key, openai_model
 ) -> dict:
     keywords_list = []
+    print(f"Searching keywords with model {openai_model}")
     for text in texts:
         keywords = retrieve_keywords_from_text(
             f"Extract keywords from this text:\n{text}", openai_api_key, openai_model
@@ -199,7 +202,8 @@ if __name__ in "__main__":
             tweets, OPENAI_API_KEY, OPENAI_MODEL,
         )
         # save word cloud image
-        save_word_cloud_image(keywords_frequencies, search_query)
+        filename = f"./keywords_{search_query.replace(' ', '_')}_{OPENAI_MODEL.replace('-', '_')}.png"
+        save_word_cloud_image(keywords_frequencies, filename)
 
     # using trending topics
     else:
@@ -216,4 +220,5 @@ if __name__ in "__main__":
                 tweets, OPENAI_API_KEY, OPENAI_MODEL,
             )
             # save word cloud image
-            save_word_cloud_image(keywords_frequencies, trend)
+            filename = f"./keywords_{trend.replace(' ', '_')}_{OPENAI_MODEL.replace('-', '_')}.png"
+            save_word_cloud_image(keywords_frequencies, filename)

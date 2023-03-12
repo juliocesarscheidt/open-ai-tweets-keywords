@@ -15,6 +15,9 @@ python main.py
 # using 10 trending topics
 TWITTER_TRENDS_LIMIT=10 python main.py
 
+# using other models from OpenAI, default text-davinci-003
+OPENAI_MODEL=text-curie-001 TWITTER_TRENDS_LIMIT=10 python main.py
+
 # using specific query
 python main.py --query "SEARCH_QUERY"
 ```
