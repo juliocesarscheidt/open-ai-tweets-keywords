@@ -15,7 +15,8 @@ python main.py
 # using 10 trending topics
 TWITTER_TRENDS_LIMIT=10 python main.py
 
-# using other models from OpenAI, default text-davinci-003
+# using other models from OpenAI, default text-davinci-003 (GPT-3.5)
+# text-curie-001 is GPT-3
 OPENAI_MODEL=text-curie-001 TWITTER_TRENDS_LIMIT=10 python main.py
 
 # using specific query
