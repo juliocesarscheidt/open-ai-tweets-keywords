@@ -15,12 +15,15 @@ python main.py
 # using 10 trending topics
 TWITTER_TRENDS_LIMIT=10 python main.py
 
-# using other models from OpenAI, default text-davinci-003 (GPT-3.5)
-# text-curie-001 is GPT-3
-OPENAI_MODEL=text-curie-001 TWITTER_TRENDS_LIMIT=10 python main.py
+# using other models from OpenAI, either
+# text-davinci-003 (GPT-3.5) DEFAULT
+# or gpt-3.5-turbo (GPT-3.5)
+OPENAI_MODEL=gpt-3.5-turbo TWITTER_TRENDS_LIMIT=10 python main.py
 
-# using specific query
-python main.py --query "SEARCH_QUERY"
+# using specific query with max results (default 10)
+TWITTER_MAX_RESULTS=5 python main.py --query "SEARCH_QUERY"
+# with gpt-3.5-turbo
+OPENAI_MODEL=gpt-3.5-turbo TWITTER_MAX_RESULTS=5 python main.py --query "SEARCH_QUERY"
 ```
 
 ## Running with Docker

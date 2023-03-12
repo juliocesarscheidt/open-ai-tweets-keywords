@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 LABEL maintainer="Julio Cesar <julio@blackdevs.com.br>"
 LABEL org.opencontainers.image.source "https://github.com/juliocesarscheidt/open-ai-tweets-keywords"
