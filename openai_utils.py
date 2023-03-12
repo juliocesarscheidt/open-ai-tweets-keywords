@@ -3,7 +3,7 @@ import openai
 
 from text_utils import sanitize_text, URL_REGEX
 
-VALID_MODELS = ["text-davinci-003", "gpt-3.5-turbo"]
+VALID_MODELS = ["gpt-3.5-turbo", "text-davinci-003"]
 
 
 def check_valid_models(model) -> bool:

@@ -17,7 +17,7 @@ TWITTER_LANG = os.environ.get("TWITTER_LANG", "pt")
 TWITTER_MAX_RESULTS = int(os.environ.get("TWITTER_MAX_RESULTS", "10"))
 TWITTER_TRENDS_LIMIT = int(os.environ.get("TWITTER_TRENDS_LIMIT", "10"))
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "text-davinci-003")
+OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-3.5-turbo")
 
 if not check_valid_models(OPENAI_MODEL):
     sys.exit(1)
