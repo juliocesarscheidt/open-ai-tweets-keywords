@@ -10,7 +10,7 @@ def sanitize_text(text: str):
     # replace everything that is not included in the following chars
     text = re.sub(r"[^\w\s!#$%&\(\)\*\+,-—\./:;<=>\?@[\]^_´`\{\}|~]+", "", text)
     text = re.sub(r"^#", "", text)
-    text = re.sub(r"\t+", " ", text)
+    text = re.sub(r"\t", " ", text)
     text = re.sub(r"\n", " ", text)
     text = re.sub(r"\s+", " ", text)
     return text
